@@ -1,0 +1,12 @@
+# Web framework
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+
+# YOLO — pulls in torch, torchvision, etc.
+ultralytics==8.3.136
+
+# Headless OpenCV (no GUI dependencies — required for server environments)
+opencv-python-headless==4.11.0.86
+
+# Pydantic v2 (bundled with FastAPI but pinned for reproducibility)
+pydantic==2.11.4

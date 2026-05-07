@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: campusflow-camera-capture
+    runtime: python
+    region: frankfurt  # choose the region closest to your cameras
+
+    # Render sets $PORT automatically; we read it in main.py
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+
+    # YOLOv8-nano + PyTorch require more RAM than the free 512 MB tier.
+    # The "standard" plan (2 GB) is the minimum recommended plan.
+    plan: standard
+
+    envVars:
+      # Tell PyTorch / Ultralytics to avoid GUI-related calls
+      - key: MPLBACKEND
+        value: Agg
+      # Cache YOLO model weights in a persistent path
+      - key: YOLO_CONFIG_DIR
+        value: /opt/render/project/src/.ultralytics
+
+    # Persist the downloaded model weights across deploys so they are
+    # not re-downloaded on every restart.
+    disk:
+      name: model-cache
+      mountPath: /opt/render/project/src/.ultralytics
+      sizeGB: 1
