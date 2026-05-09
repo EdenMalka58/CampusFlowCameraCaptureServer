@@ -1,0 +1,64 @@
+https://dashboard.render.com/web/
+
+# ── Health check ──────────────────────────────────────────────────────────────
+curl https://campusflowcameracaptureserver-4p7b.onrender.com/health
+{
+  "status": "ok",
+  "model_loaded": true
+}
+
+
+# ── Count people (with AES-256-CBC encrypted password) ───────────────────────
+#
+# camera_url        : RTSP URL WITHOUT the password
+# encrypted_password: base64( IV[16 bytes] + AES-256-CBC(password) )
+#                     encrypted with the shared CAMERA_ENCRYPT_KEY env var
+#
+curl -X POST "https://campusflowcameracaptureserver-4p7b.onrender.com/count-people" \
+-H "Content-Type: application/json" \
+-d '{
+  "camera_url": "rtsp://username@192.168.1.100:554/stream",
+  "encrypted_password": "<base64( IV + ciphertext )>",
+  "confidence": 0.4
+}'
+
+{
+  "camera_url": "rtsp://username@192.168.1.100:554/stream",
+  "people_count": 3,
+  "confidence_threshold": 0.4,
+  "detections": [...]
+}
+
+
+# ── C# encryption helper (put this in your .NET server) ──────────────────────
+#
+# using System;
+# using System.Security.Cryptography;
+# using System.Text;
+#
+# public static string EncryptPassword(string plainPassword)
+# {
+#     string base64Key = Environment.GetEnvironmentVariable("CAMERA_ENCRYPT_KEY")!;
+#     byte[] key = Convert.FromBase64String(base64Key);
+#
+#     using var aes = Aes.Create();
+#     aes.Key = key;                   // 32 bytes → AES-256
+#     aes.Mode = CipherMode.CBC;
+#     aes.Padding = PaddingMode.PKCS7;
+#     aes.GenerateIV();                // random 16-byte IV each call
+#
+#     using var encryptor = aes.CreateEncryptor();
+#     byte[] plain = Encoding.UTF8.GetBytes(plainPassword);
+#     byte[] cipher = encryptor.TransformFinalBlock(plain, 0, plain.Length);
+#
+#     // Prepend IV so the Python server can extract it
+#     byte[] result = new byte[16 + cipher.Length];
+#     Buffer.BlockCopy(aes.IV, 0, result, 0, 16);
+#     Buffer.BlockCopy(cipher, 0, result, 16, cipher.Length);
+#
+#     return Convert.ToBase64String(result);
+# }
+#
+# ── Key generation (run once, store in both env vars) ────────────────────────
+# Python:  import os, base64; print(base64.b64encode(os.urandom(32)).decode())
+# Store result as CAMERA_ENCRYPT_KEY on Render and in your .NET environment.

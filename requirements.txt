@@ -17,3 +17,6 @@ opencv-python-headless==4.11.0.86
 
 # Pydantic
 pydantic==2.11.4
+
+# AES-256-CBC password encryption
+cryptography==44.0.3
