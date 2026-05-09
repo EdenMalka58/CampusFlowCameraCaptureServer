@@ -1,12 +1,19 @@
+# CPU-only PyTorch index
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 # Web framework
 fastapi==0.115.12
 uvicorn[standard]==0.34.2
 
-# YOLO — pulls in torch, torchvision, etc.
+# YOLO
 ultralytics==8.3.136
 
-# Headless OpenCV (no GUI dependencies — required for server environments)
+# CPU-only Torch
+torch==2.6.0+cpu
+torchvision==0.21.0+cpu
+
+# Headless OpenCV
 opencv-python-headless==4.11.0.86
 
-# Pydantic v2 (bundled with FastAPI but pinned for reproducibility)
+# Pydantic
 pydantic==2.11.4
